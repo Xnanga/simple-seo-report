@@ -1,0 +1,21 @@
+.report-section {
+  background-color: white;
+  border-radius: 4px;
+  margin-top: 2rem;
+  box-shadow: 5px 10px 30px -8px rgba(0, 0, 0, 0.75);
+
+  &__header {
+    background-color: #333399;
+    padding: 1rem;
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
+
+    & > h2 {
+      color: white;
+    }
+  }
+
+  &__body {
+    padding: 1rem;
+  }
+}

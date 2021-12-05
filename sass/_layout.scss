@@ -1,0 +1,21 @@
+.page-background {
+  position: fixed;
+  height: 100%;
+  width: 100%;
+  z-index: -1;
+  background: rgb(108, 9, 121);
+  background: linear-gradient(
+    0deg,
+    rgba(108, 9, 121, 1) 0%,
+    rgba(0, 212, 255, 1) 100%
+  );
+  opacity: 0.75;
+}
+
+.page-wrapper {
+  width: 50%;
+  // border: 2px solid black;
+
+  margin: 0rem auto;
+  padding: 2rem 0;
+}

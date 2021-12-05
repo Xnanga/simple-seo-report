@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/png" href="#" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- <link rel="apple-touch-icon" sizes="180x180" href="#" />
+    <link rel="icon" type="image/png" sizes="32x32" href="#" />
+    <link rel="icon" type="image/png" sizes="16x16" href="#" />
+    <meta name="theme-color" content="#0099ff" /> -->
+
+    <title>Simple SEO Report</title>
+    <meta
+      name="description"
+      content="A simple reporting tool providing Google Analytics data for SEOs."
+    />
+    <meta name="author" content="Jamie Peutherer" />
+    <meta
+      name="google-signin-client_id"
+      content="252169416407-208d3t67bug3dh6k7s7t5brbm3rtop8n.apps.googleusercontent.com"
+    />
+    <meta
+      name="google-signin-scope"
+      content="https://www.googleapis.com/auth/analytics.readonly"
+    />
+
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <script defer src="https://apis.google.com/js/client:platform.js"></script>
+    <script
+      defer
+      src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"
+    ></script>
+    <script defer src="js/main.js"></script>
+  </head>
+  <body>
+    <div class="page-background"></div>
+    <div class="page-wrapper">
+      <header>
+        <h1>Simple SEO Report</h1>
+        <span>Connect Google Analytics & get a free report.</span>
+      </header>
+      <main>
+        <!-- Start GA -->
+        <p class="g-signin2" data-onsuccess="queryReports"></p>
+
+        <script>
+          // Query the API and print the results to the page.
+          function queryReports() {
+            gapi.client.request({
+              path: "/v4/reports:batchGet",
+              root: "https://analyticsreporting.googleapis.com/",
+              method: "POST",
+              body: {
+                reportRequests: [
+                  {
+                    viewId: VIEW_ID,
+                    dateRanges: [
+                      {
+                        startDate: "7daysAgo",
+                        endDate: "today",
+                      },
+                    ],
+                    metrics: [
+                      {
+                        expression: "ga:sessions",
+                      },
+                    ],
+                  },
+                ],
+              },
+            });
+          }
+        </script>
+
+        <!-- End GA -->
+
+        <section class="report-section">
+          <div class="report-section__header">
+            <h2>Introduction</h2>
+          </div>
+          <div class="report-section__body" id="intro-body"></div>
+        </section>
+        <section class="report-section">
+          <div class="report-section__header">
+            <h2>Channel Performance Overview</h2>
+          </div>
+          <div class="report-section__body"></div>
+        </section>
+        <section class="report-section">
+          <div class="report-section__header">
+            <h2>Organic Traffic MoM</h2>
+          </div>
+          <div class="report-section__body"></div>
+        </section>
+        <section class="report-section">
+          <div class="report-section__header">
+            <h2>Organic Traffic YoY</h2>
+          </div>
+          <div class="report-section__body"></div>
+        </section>
+        <section class="report-section">
+          <div class="report-section__header">
+            <h2>Top Landing Pages MoM</h2>
+          </div>
+          <div class="report-section__body"></div>
+        </section>
+        <section class="report-section">
+          <div class="report-section__header">
+            <h2>Top Landing Pages YoY</h2>
+          </div>
+          <div class="report-section__body"></div>
+        </section>
+        <section class="report-section">
+          <div class="report-section__header">
+            <h2>Organic Events MoM</h2>
+          </div>
+          <div class="report-section__body"></div>
+        </section>
+        <section class="report-section">
+          <div class="report-section__header">
+            <h2>Organic Events YoY</h2>
+          </div>
+          <div class="report-section__body"></div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
