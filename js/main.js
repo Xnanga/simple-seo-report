@@ -26,33 +26,14 @@ const getDates = function () {
     .endOf("month")
     .format("YYYY-MM-DD");
 
-  // Previous Full Month
-  const previousFullMonthStartDate = moment(today)
-    .subtract(2, "months")
-    .startOf("month")
-    .format("YYYY-MM-DD");
-
-  const previousFullMonthEndDate = moment(today)
-    .subtract(2, "months")
-    .endOf("month")
-    .format("YYYY-MM-DD");
-
-  // Last Full Month Previous Year
+  // 12 Months Previous
   const lastFullMonthStartDateYoY = moment(lastFullMonthStartDate)
-    .subtract(1, "years")
-    .format("YYYY-MM-DD");
-
-  const lastFullMonthEndDateYoY = moment(lastFullMonthEndDate)
-    .subtract(1, "years")
+    .subtract(12, "months")
     .format("YYYY-MM-DD");
 
   allDates = {
-    lastFullMonthStartDate: lastFullMonthStartDate,
     lastFullMonthEndDate: lastFullMonthEndDate,
-    previousFullMonthStartDate: previousFullMonthStartDate,
-    previousFullMonthEndDate: previousFullMonthEndDate,
     lastFullMonthStartDateYoY: lastFullMonthStartDateYoY,
-    lastFullMonthEndDateYoY: lastFullMonthEndDateYoY,
   };
 };
 
@@ -74,17 +55,8 @@ function queryReports() {
               viewId: VIEW_ID,
               dateRanges: [
                 {
-                  startDate: allDates.lastFullMonthStartDate,
-                  endDate: allDates.lastFullMonthEndDate,
-                },
-                // FIGURE OUT HOW YOU'RE GOING TO GET BOTH MOM AND YOY DATA IN ONE GO
-                // {
-                //   startDate: allDates.previousFullMonthStartDate,
-                //   endDate: allDates.previousFullMonthEndDate,
-                // },
-                {
                   startDate: allDates.lastFullMonthStartDateYoY,
-                  endDate: allDates.lastFullMonthEndDateYoY,
+                  endDate: allDates.lastFullMonthEndDate,
                 },
               ],
               metrics: [
@@ -140,11 +112,9 @@ const getChannelData = function (allData, channel) {
 };
 
 const runAllReports = function (allData, orgData) {
-  const currMonthOrgSessions = orgData[0].metrics[0].values[0];
-  const prevMonthOrgSessions = orgData[0].metrics[0].values[0];
-  const prevYearOrgSessions = orgData[0].metrics[1].values[0];
-
-  console.log(orgData);
+  const currMonthOrgSessions = orgData[12].metrics[0].values[0];
+  const prevMonthOrgSessions = orgData[11].metrics[0].values[0];
+  const prevYearOrgSessions = orgData[0].metrics[0].values[0];
 
   // Organic Traffic Percentage
 
@@ -166,25 +136,13 @@ const runAllReports = function (allData, orgData) {
     "visits"
   );
 
-  // MoM Organic Top Landing Page Increases
+  // Top 10 Landing Pages Biggest Chance MoM
 
-  // YoY Organic Top Landing Page Increases
+  // Top 10 Landing Pages Biggest Chance YoY
 
-  // MoM Organic Revenue
+  // Organic Events MoM
 
-  // YoY Organic Revenue
-
-  // MoM Organic Transactions
-
-  // YoY Organic Transactions
-
-  // MoM Organic Conversion Rate
-
-  // YoY Organic Conversion Rate
-
-  // MoM Organic AOV
-
-  // YoY Organic AOV
+  // Organic Events YoY
 };
 
 // Google Analytics - Comparisons
@@ -209,7 +167,7 @@ const generateIntroText = function (data) {
   const formattedString = `<li>${firstLetter}${remainingString}</li>`;
 
   const introBody = document.getElementById("intro-body");
-  introBody.innerHTML = formattedString;
+  introBody.insertAdjacentHTML("afterbegin", formattedString);
 };
 
 // Utilities
