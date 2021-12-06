@@ -1,14 +1,12 @@
 "use:strict";
 
+// Imports
+
+import * as Plotly from "../node_modules/plotly.js-dist/plotly.js";
+
 // Global
 
-let allDates = {};
-
-// Init
-
-const init = function () {
-  getDates();
-};
+const VIEW_ID = "101406599";
 
 // Dates
 
@@ -31,18 +29,25 @@ const getDates = function () {
     .subtract(12, "months")
     .format("YYYY-MM-DD");
 
-  allDates = {
+  const allDates = {
     lastFullMonthEndDate: lastFullMonthEndDate,
     lastFullMonthStartDateYoY: lastFullMonthStartDateYoY,
   };
+
+  return allDates;
 };
 
 // Google Analytics
 
-const VIEW_ID = "152507396";
+function runAllQueries(dates) {
+  queryTrafficReports(dates);
+  // queryLandingPageReports();
+  // queryEventsReports();
+  // queryEcommerceReports(); No e-commerce data to test with yet
+}
 
-// Query the API
-function queryReports() {
+// Query for traffic data
+const queryTrafficReports = function (dates) {
   try {
     gapi.client
       .request({
@@ -55,23 +60,14 @@ function queryReports() {
               viewId: VIEW_ID,
               dateRanges: [
                 {
-                  startDate: allDates.lastFullMonthStartDateYoY,
-                  endDate: allDates.lastFullMonthEndDate,
+                  startDate: dates.lastFullMonthStartDateYoY,
+                  endDate: dates.lastFullMonthEndDate,
                 },
               ],
               metrics: [
                 {
                   expression: "ga:sessions",
                 },
-                // {
-                //   expression: "ga:itemRevenue",
-                // },
-                // {
-                //   expression: "ga:transactions",
-                // },
-                // {
-                //   expression: "ga:transactionsPerSession",
-                // },
               ],
               dimensions: [
                 {
@@ -85,13 +81,13 @@ function queryReports() {
           ],
         },
       })
-      .then(handleOutput, console.error.bind(console));
+      .then(handleTrafficOutput);
   } catch (error) {
     console.error(error);
   }
-}
+};
 
-const handleOutput = async function (data) {
+const handleTrafficOutput = async function (data) {
   // All Data
   const allDataRows = data.result.reports[0].data.rows;
 
@@ -99,19 +95,10 @@ const handleOutput = async function (data) {
   const allOrgDataRows = await getChannelData(allDataRows, "Organic Search");
 
   // Send Data for Reporting
-  runAllReports(allDataRows, allOrgDataRows);
+  runAllTrafficReports(allDataRows, allOrgDataRows);
 };
 
-const getChannelData = function (allData, channel) {
-  return new Promise((res) => {
-    const newChannelData = allData.filter((row) => {
-      return row.dimensions[0] === channel;
-    });
-    res(newChannelData);
-  });
-};
-
-const runAllReports = function (allData, orgData) {
+const runAllTrafficReports = function (allData, orgData) {
   const currMonthOrgSessions = orgData[12].metrics[0].values[0];
   const prevMonthOrgSessions = orgData[11].metrics[0].values[0];
   const prevYearOrgSessions = orgData[0].metrics[0].values[0];
@@ -135,14 +122,77 @@ const runAllReports = function (allData, orgData) {
     "organic traffic",
     "visits"
   );
+};
 
-  // Top 10 Landing Pages Biggest Chance MoM
+// Query for Ecommerce Data
 
-  // Top 10 Landing Pages Biggest Chance YoY
+const queryEcommerceReports = function () {
+  try {
+    gapi.client
+      .request({
+        path: "/v4/reports:batchGet",
+        root: "https://analyticsreporting.googleapis.com/",
+        method: "POST",
+        body: {
+          reportRequests: [
+            {
+              viewId: VIEW_ID,
+              dateRanges: [
+                {
+                  startDate: allDates.lastFullMonthStartDateYoY,
+                  endDate: allDates.lastFullMonthEndDate,
+                },
+              ],
+              metrics: [
+                {
+                  expression: "ga:transactionRevenue",
+                },
+                {
+                  expression: "ga:transactions",
+                },
+                {
+                  expression: "ga:transactionsPerSession",
+                },
+              ],
+              dimensions: [
+                {
+                  name: "ga:channelGrouping",
+                },
+                {
+                  name: "ga:nthMonth",
+                },
+              ],
+            },
+          ],
+        },
+      })
+      .then(handleEcommerceOutput);
+  } catch (error) {
+    console.error(error);
+  }
+};
 
-  // Organic Events MoM
+const handleEcommerceOutput = async function (data) {
+  console.log(data);
 
-  // Organic Events YoY
+  // All Data
+  const allDataRows = data.result.reports[0].data.rows;
+
+  // Organic Search
+  // const allOrgDataRows = await getChannelData(allDataRows, "Organic Search");
+
+  // // Send Data for Reporting
+  // runAllEcommerceReports(allDataRows, allOrgDataRows);
+};
+
+const runAllEcommerceReports = function (allData, orgData) {
+  // Get MoM and YoY revenue, transactions, and conv rate
+  // MoM Revenue
+  // YoY Revenue
+  // MoM Transactions
+  // YoY Transactions
+  // MoM Conv Rate
+  // YoY Conv Rate
 };
 
 // Google Analytics - Comparisons
@@ -170,7 +220,34 @@ const generateIntroText = function (data) {
   introBody.insertAdjacentHTML("afterbegin", formattedString);
 };
 
+// Plotly Graphs
+
+const testGraph = function () {
+  const TESTER = document.getElementById("tester");
+  newPlot(
+    TESTER,
+    [
+      {
+        x: [1, 2, 3, 4, 5],
+        y: [1, 2, 4, 8, 16],
+      },
+    ],
+    {
+      margin: { t: 0 },
+    }
+  );
+};
+
 // Utilities
+
+const getChannelData = function (allData, channel) {
+  return new Promise((res) => {
+    const newChannelData = allData.filter((row) => {
+      return row.dimensions[0] === channel;
+    });
+    res(newChannelData);
+  });
+};
 
 const getPercentage = (num1, num2) =>
   Math.abs(((num1 - num2) / num1) * 100).toFixed(2);
@@ -184,5 +261,12 @@ const determineIncreaseDecrease = function (currentNum, prevNum) {
     : (comparison = "decreased");
   return comparison;
 };
+
+// Init
+
+async function init() {
+  const dates = await getDates();
+  if (dates) runAllQueries(dates);
+}
 
 init();

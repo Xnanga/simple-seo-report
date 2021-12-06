@@ -38,7 +38,12 @@
       defer
       src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"
     ></script>
-    <script defer src="js/main.js"></script>
+    <script
+      defer
+      type="module"
+      crossorigin="use-credentials"
+      src="js/main.js"
+    ></script>
   </head>
   <body>
     <div class="page-background"></div>
@@ -49,37 +54,7 @@
       </header>
       <main>
         <!-- Start GA -->
-        <p class="g-signin2" data-onsuccess="queryReports"></p>
-
-        <script>
-          // Query the API and print the results to the page.
-          function queryReports() {
-            gapi.client.request({
-              path: "/v4/reports:batchGet",
-              root: "https://analyticsreporting.googleapis.com/",
-              method: "POST",
-              body: {
-                reportRequests: [
-                  {
-                    viewId: VIEW_ID,
-                    dateRanges: [
-                      {
-                        startDate: "7daysAgo",
-                        endDate: "today",
-                      },
-                    ],
-                    metrics: [
-                      {
-                        expression: "ga:sessions",
-                      },
-                    ],
-                  },
-                ],
-              },
-            });
-          }
-        </script>
-
+        <p class="g-signin2" data-onsuccess="init"></p>
         <!-- End GA -->
 
         <section class="report-section">
@@ -98,7 +73,9 @@
           <div class="report-section__header">
             <h2>Organic Traffic MoM</h2>
           </div>
-          <div class="report-section__body"></div>
+          <div class="report-section__body">
+            <div id="tester" style="width: 600px; height: 250px"></div>
+          </div>
         </section>
         <section class="report-section">
           <div class="report-section__header">
