@@ -1,8 +1,4 @@
-"use:strict";
-
 // Imports
-
-import * as Plotly from "../node_modules/plotly.js-dist/plotly.js";
 
 // Global
 
@@ -96,6 +92,9 @@ const handleTrafficOutput = async function (data) {
 
   // Send Data for Reporting
   runAllTrafficReports(allDataRows, allOrgDataRows);
+
+  // Create graphs
+  graphOrgTrafficMoM(allOrgDataRows);
 };
 
 const runAllTrafficReports = function (allData, orgData) {
@@ -222,20 +221,36 @@ const generateIntroText = function (data) {
 
 // Plotly Graphs
 
-const testGraph = function () {
-  const TESTER = document.getElementById("tester");
-  newPlot(
-    TESTER,
-    [
-      {
-        x: [1, 2, 3, 4, 5],
-        y: [1, 2, 4, 8, 16],
-      },
-    ],
+const graphOrgTrafficMoM = function (orgData) {
+  let yAxisDataArr = [];
+  orgData.forEach((month) => {
+    yAxisDataArr.push(month.metrics[0].values[0]);
+  });
+
+  const data = [
     {
-      margin: { t: 0 },
-    }
-  );
+      x: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13"],
+      y: yAxisDataArr,
+      type: "bar",
+    },
+  ];
+
+  const layout = {
+    xaxis: { title: "Month" },
+    yaxis: { title: "Organic Sessions" },
+    dragmode: false,
+    margin: {
+      b: 60,
+      l: 60,
+      r: 60,
+      t: 10,
+    },
+  };
+
+  Plotly.newPlot("graphOrgTrafficMoM", data, layout, {
+    displayModeBar: false,
+    responsive: true,
+  });
 };
 
 // Utilities
@@ -260,6 +275,10 @@ const determineIncreaseDecrease = function (currentNum, prevNum) {
     ? (comparison = "increased")
     : (comparison = "decreased");
   return comparison;
+};
+
+const listLast12Months = function () {
+  // Get last 12 month names e.g. "jan, feb, mar"
 };
 
 // Init
