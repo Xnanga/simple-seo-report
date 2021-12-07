@@ -83,7 +83,7 @@ const queryTrafficReports = function (dates) {
   }
 };
 
-const handleTrafficOutput = async function (data) {
+const handleTrafficOutput = async function (data, dates) {
   // All Data
   const allDataRows = data.result.reports[0].data.rows;
 
@@ -222,21 +222,26 @@ const generateIntroText = function (data) {
 // Plotly Graphs
 
 const graphOrgTrafficMoM = function (orgData) {
+  const xAxisLabels = last12MonthsArr(12);
+
+  // Create array of organic sessions last 12 months
   let yAxisDataArr = [];
-  orgData.forEach((month) => {
-    yAxisDataArr.push(month.metrics[0].values[0]);
-  });
+  for (let i = 1; i < orgData.length; i++) {
+    yAxisDataArr.push(orgData[i].metrics[0].values[0]);
+  }
 
   const data = [
     {
-      x: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13"],
+      x: xAxisLabels,
       y: yAxisDataArr,
       type: "bar",
     },
   ];
 
   const layout = {
-    xaxis: { title: "Month" },
+    xaxis: {
+      title: "Month",
+    },
     yaxis: { title: "Organic Sessions" },
     dragmode: false,
     margin: {
@@ -277,8 +282,20 @@ const determineIncreaseDecrease = function (currentNum, prevNum) {
   return comparison;
 };
 
-const listLast12Months = function () {
-  // Get last 12 month names e.g. "jan, feb, mar"
+// Create array of month names ("Dec")
+const last12MonthsArr = function (months) {
+  let arr = [];
+
+  for (i = 0; i < months; i++) {
+    const currentMonth = moment()
+      .subtract(i, "month")
+      .startOf("month")
+      .format("MMM");
+
+    arr.push(currentMonth);
+  }
+
+  return arr;
 };
 
 // Init
