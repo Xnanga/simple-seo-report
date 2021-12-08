@@ -1,7 +1,8 @@
 :root {
   --default-font-style: "Lato", sans-serif;
   --default-font-size: 1.5rem;
-  --default-font-color: #ffffff; }
+  --default-font-color: #ffffff;
+  --default-graph-color: #1f77b4; }
 
 *,
 *::after,
@@ -43,6 +44,9 @@ ol {
   margin-left: 2rem;
   line-height: 3rem; }
 
+tbody {
+  width: 100%; }
+
 .report-section {
   background-color: white;
   border-radius: 4px;
@@ -58,6 +62,14 @@ ol {
   .report-section__body {
     padding: 1rem; }
 
+.performance-table {
+  width: 100%; }
+  .performance-table__row {
+    width: 100%; }
+  .performance-table__cell {
+    text-align: center;
+    background-color: #e8e8e8; }
+
 .page-background {
   position: fixed;
   height: 100%;
@@ -68,7 +80,7 @@ ol {
   opacity: 0.75; }
 
 .page-wrapper {
-  width: 50%;
+  width: 60%;
   margin: 0rem auto;
   padding: 2rem 0; }
 

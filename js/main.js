@@ -95,6 +95,7 @@ const handleTrafficOutput = async function (data, dates) {
 
   // Create graphs
   graphOrgTrafficMoM(allOrgDataRows);
+  graphOrgTrafficYoY(allOrgDataRows);
 };
 
 const runAllTrafficReports = function (allData, orgData) {
@@ -223,9 +224,8 @@ const generateIntroText = function (data) {
 
 const graphOrgTrafficMoM = function (orgData) {
   const xAxisLabels = last12MonthsArr(12);
-
-  // Create array of organic sessions last 12 months
   let yAxisDataArr = [];
+
   for (let i = 1; i < orgData.length; i++) {
     yAxisDataArr.push(orgData[i].metrics[0].values[0]);
   }
@@ -258,6 +258,45 @@ const graphOrgTrafficMoM = function (orgData) {
   });
 };
 
+const graphOrgTrafficYoY = function (orgData) {
+  const xAxisLabels = [
+    moment().subtract(13, "months").endOf("month").format("MMM YYYY"),
+    moment().subtract(1, "months").endOf("month").format("MMM YYYY"),
+  ];
+
+  const currentMonthOrgSessions = [
+    orgData[0].metrics[0].values[0],
+    orgData[12].metrics[0].values[0],
+  ];
+
+  const data = [
+    {
+      x: xAxisLabels,
+      y: currentMonthOrgSessions,
+      type: "bar",
+    },
+  ];
+
+  const layout = {
+    xaxis: {
+      title: "Month",
+    },
+    yaxis: { title: "Organic Sessions" },
+    dragmode: false,
+    margin: {
+      b: 60,
+      l: 60,
+      r: 60,
+      t: 10,
+    },
+  };
+
+  Plotly.newPlot("graphOrgTrafficYoY", data, layout, {
+    displayModeBar: false,
+    responsive: true,
+  });
+};
+
 // Utilities
 
 const getChannelData = function (allData, channel) {
@@ -282,19 +321,18 @@ const determineIncreaseDecrease = function (currentNum, prevNum) {
   return comparison;
 };
 
-// Create array of month names ("Dec")
+// Create array of month names
 const last12MonthsArr = function (months) {
   let arr = [];
 
   for (i = 0; i < months; i++) {
     const currentMonth = moment()
-      .subtract(i, "month")
+      .subtract(i + 1, "month")
       .startOf("month")
       .format("MMM");
 
-    arr.push(currentMonth);
+    arr.unshift(currentMonth);
   }
-
   return arr;
 };
 

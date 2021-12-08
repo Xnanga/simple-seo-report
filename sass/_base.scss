@@ -16,6 +16,7 @@
   --default-font-style: "Lato", sans-serif;
   --default-font-size: 1.5rem;
   --default-font-color: #ffffff;
+  --default-graph-color: #1f77b4;
 }
 
 // Reset
@@ -65,4 +66,8 @@ ul,
 ol {
   margin-left: 2rem;
   line-height: 3rem;
+}
+
+tbody {
+  width: 100%;
 }
