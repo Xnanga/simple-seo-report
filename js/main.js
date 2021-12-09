@@ -1,5 +1,3 @@
-// Imports
-
 // Global
 
 const VIEW_ID = "101406599";
@@ -29,7 +27,6 @@ const getDates = function () {
     lastFullMonthEndDate: lastFullMonthEndDate,
     lastFullMonthStartDateYoY: lastFullMonthStartDateYoY,
   };
-
   return allDates;
 };
 
@@ -116,8 +113,6 @@ const handleTrafficOutput = async function (data) {
     allChannels
   );
 
-  console.log(dataGroupedByChannel);
-
   // Send Data for Channel Performance Overview
   runChannelPerfOverview(dataGroupedByChannel);
 
@@ -136,11 +131,9 @@ const handleTrafficOutput = async function (data) {
 };
 
 const runAllTrafficReports = function (allDataGrouped, orgData) {
-  // Should below be changed to look for month index instead?
-  // May not always be 13 months worth of data
-  const currMonthOrgSessions = orgData[12].metrics[0].values[0] || 0;
-  const prevMonthOrgSessions = orgData[11].metrics[0].values[0] || 0;
-  const prevYearOrgSessions = orgData[0].metrics[0].values[0] || 0;
+  const currMonthOrgSessions = findMonthRow(orgData, "0012", 0);
+  const prevMonthOrgSessions = findMonthRow(orgData, "0011", 0);
+  const prevYearOrgSessions = findMonthRow(orgData, "0000", 0);
 
   // Organic Traffic Percentage
 
@@ -322,14 +315,6 @@ const getAllChannels = function (rows) {
 };
 
 const groupDataByChannel = function (allData, allChannels) {
-  // let channelDataTable = {};
-  // allChannels.forEach((channel) => {
-  //   getChannelData(allData, channel).then(function (res) {
-  //     channelDataTable[channel] = res;
-  //   });
-  // });
-  // return channelDataTable;
-
   return new Promise((res) => {
     let channelDataTable = {};
     allChannels.forEach((channel) => {
@@ -339,6 +324,13 @@ const groupDataByChannel = function (allData, allChannels) {
     });
     res(channelDataTable);
   });
+};
+
+const findMonthRow = function (rows, month, metricIndex) {
+  const figure =
+    rows.find((row) => row.dimensions[1] === month).metrics[metricIndex]
+      .values[0] || 0;
+  return figure;
 };
 
 // Init
