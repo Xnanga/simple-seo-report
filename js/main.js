@@ -50,6 +50,7 @@ const queryTrafficReports = function (dates) {
         path: "/v4/reports:batchGet",
         root: "https://analyticsreporting.googleapis.com/",
         method: "POST",
+        includeEmptyRows: true,
         body: {
           reportRequests: [
             {
@@ -64,86 +65,18 @@ const queryTrafficReports = function (dates) {
                 {
                   expression: "ga:sessions",
                 },
-              ],
-              dimensions: [
                 {
-                  name: "ga:channelGrouping",
+                  expression: "ga:users",
                 },
                 {
-                  name: "ga:nthMonth",
+                  expression: "ga:bounceRate",
                 },
-              ],
-            },
-          ],
-        },
-      })
-      .then(handleTrafficOutput);
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-const handleTrafficOutput = async function (data, dates) {
-  // All Data
-  const allDataRows = data.result.reports[0].data.rows;
-
-  // Organic Search
-  const allOrgDataRows = await getChannelData(allDataRows, "Organic Search");
-
-  // Send Data for Reporting
-  runAllTrafficReports(allDataRows, allOrgDataRows);
-
-  // Create graphs
-  graphOrgTrafficMoM(allOrgDataRows);
-  graphOrgTrafficYoY(allOrgDataRows);
-};
-
-const runAllTrafficReports = function (allData, orgData) {
-  const currMonthOrgSessions = orgData[12].metrics[0].values[0];
-  const prevMonthOrgSessions = orgData[11].metrics[0].values[0];
-  const prevYearOrgSessions = orgData[0].metrics[0].values[0];
-
-  // Organic Traffic Percentage
-
-  // MoM Organic Traffic
-  compareMonths(
-    currMonthOrgSessions,
-    prevMonthOrgSessions,
-    "month-on-month",
-    "organic traffic",
-    "visits"
-  );
-
-  // YoY Organic Traffic
-  compareMonths(
-    currMonthOrgSessions,
-    prevYearOrgSessions,
-    "year-on-year",
-    "organic traffic",
-    "visits"
-  );
-};
-
-// Query for Ecommerce Data
-
-const queryEcommerceReports = function () {
-  try {
-    gapi.client
-      .request({
-        path: "/v4/reports:batchGet",
-        root: "https://analyticsreporting.googleapis.com/",
-        method: "POST",
-        body: {
-          reportRequests: [
-            {
-              viewId: VIEW_ID,
-              dateRanges: [
                 {
-                  startDate: allDates.lastFullMonthStartDateYoY,
-                  endDate: allDates.lastFullMonthEndDate,
+                  expression: "ga:avgSessionDuration",
                 },
-              ],
-              metrics: [
+                {
+                  expression: "ga:pageviewsPerSession",
+                },
                 {
                   expression: "ga:transactionRevenue",
                 },
@@ -166,33 +99,76 @@ const queryEcommerceReports = function () {
           ],
         },
       })
-      .then(handleEcommerceOutput);
+      .then(handleTrafficOutput);
   } catch (error) {
     console.error(error);
   }
 };
 
-const handleEcommerceOutput = async function (data) {
-  console.log(data);
-
+const handleTrafficOutput = async function (data) {
   // All Data
   const allDataRows = data.result.reports[0].data.rows;
 
-  // Organic Search
-  // const allOrgDataRows = await getChannelData(allDataRows, "Organic Search");
+  // Group channel data together
+  const allChannels = getAllChannels(allDataRows);
+  const dataGroupedByChannel = await groupDataByChannel(
+    allDataRows,
+    allChannels
+  );
 
-  // // Send Data for Reporting
-  // runAllEcommerceReports(allDataRows, allOrgDataRows);
+  console.log(dataGroupedByChannel);
+
+  // Send Data for Channel Performance Overview
+  runChannelPerfOverview(dataGroupedByChannel);
+
+  // Send Data for Organic Traffic Performance
+  runAllTrafficReports(
+    dataGroupedByChannel,
+    dataGroupedByChannel["Organic Search"]
+  );
+
+  // Send Data for e-commerce performance
+  runAllEcommerceReports(dataGroupedByChannel);
+
+  // Create graphs
+  graphOrgTrafficMoM(dataGroupedByChannel["Organic Search"]);
+  graphOrgTrafficYoY(dataGroupedByChannel["Organic Search"]);
 };
 
-const runAllEcommerceReports = function (allData, orgData) {
-  // Get MoM and YoY revenue, transactions, and conv rate
-  // MoM Revenue
-  // YoY Revenue
-  // MoM Transactions
-  // YoY Transactions
-  // MoM Conv Rate
-  // YoY Conv Rate
+const runAllTrafficReports = function (allDataGrouped, orgData) {
+  // Should below be changed to look for month index instead?
+  // May not always be 13 months worth of data
+  const currMonthOrgSessions = orgData[12].metrics[0].values[0] || 0;
+  const prevMonthOrgSessions = orgData[11].metrics[0].values[0] || 0;
+  const prevYearOrgSessions = orgData[0].metrics[0].values[0] || 0;
+
+  // Organic Traffic Percentage
+
+  // MoM Organic Traffic
+  compareMonths(
+    currMonthOrgSessions,
+    prevMonthOrgSessions,
+    "month-on-month",
+    "organic traffic",
+    "visits"
+  );
+
+  // YoY Organic Traffic
+  compareMonths(
+    currMonthOrgSessions,
+    prevYearOrgSessions,
+    "year-on-year",
+    "organic traffic",
+    "visits"
+  );
+};
+
+const runChannelPerfOverview = function (dataGroupedByChannel) {
+  // Some Code
+};
+
+const runAllEcommerceReports = function (dataGroupedByChannel) {
+  // Some Code
 };
 
 // Google Analytics - Comparisons
@@ -334,6 +310,35 @@ const last12MonthsArr = function (months) {
     arr.unshift(currentMonth);
   }
   return arr;
+};
+
+const getAllChannels = function (rows) {
+  let arr = [];
+  rows.forEach((row) => {
+    arr.push(row.dimensions[0]);
+  });
+
+  return [...new Set(arr)];
+};
+
+const groupDataByChannel = function (allData, allChannels) {
+  // let channelDataTable = {};
+  // allChannels.forEach((channel) => {
+  //   getChannelData(allData, channel).then(function (res) {
+  //     channelDataTable[channel] = res;
+  //   });
+  // });
+  // return channelDataTable;
+
+  return new Promise((res) => {
+    let channelDataTable = {};
+    allChannels.forEach((channel) => {
+      getChannelData(allData, channel).then(function (res) {
+        channelDataTable[channel] = res;
+      });
+    });
+    res(channelDataTable);
+  });
 };
 
 // Init
