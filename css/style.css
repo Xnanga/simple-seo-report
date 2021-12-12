@@ -65,10 +65,13 @@ tbody {
 .performance-table {
   width: 100%; }
   .performance-table__row {
-    width: 100%; }
+    width: 100%;
+    height: 6rem; }
   .performance-table__cell {
     text-align: center;
     background-color: #e8e8e8; }
+    .performance-table__cell--heading {
+      padding: 0.75rem; }
 
 .page-background {
   position: fixed;

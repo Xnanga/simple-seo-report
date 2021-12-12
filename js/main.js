@@ -1,6 +1,6 @@
 // Global
 
-const VIEW_ID = "101406599";
+const viewId = "101406599";
 
 // Dates
 
@@ -51,7 +51,7 @@ const queryTrafficReports = function (dates) {
         body: {
           reportRequests: [
             {
-              viewId: VIEW_ID,
+              viewId: viewId,
               dateRanges: [
                 {
                   startDate: dates.lastFullMonthStartDateYoY,
@@ -131,9 +131,9 @@ const handleTrafficOutput = async function (data) {
 };
 
 const runAllTrafficReports = function (allDataGrouped, orgData) {
-  const currMonthOrgSessions = findMonthRow(orgData, "0012", 0);
-  const prevMonthOrgSessions = findMonthRow(orgData, "0011", 0);
-  const prevYearOrgSessions = findMonthRow(orgData, "0000", 0);
+  const currMonthOrgSessions = findFigureByMonthRow(orgData, "0012", 0);
+  const prevMonthOrgSessions = findFigureByMonthRow(orgData, "0011", 0);
+  const prevYearOrgSessions = findFigureByMonthRow(orgData, "0000", 0);
 
   // Organic Traffic Percentage
 
@@ -157,7 +157,19 @@ const runAllTrafficReports = function (allDataGrouped, orgData) {
 };
 
 const runChannelPerfOverview = function (dataGroupedByChannel) {
-  // Some Code
+  // Reduce channel data to just the latest month
+  const currentMonthData = findAllSpecificMonthRows(
+    dataGroupedByChannel,
+    "0012"
+  );
+
+  // Order channels by sessions high to low
+  const sortedCurrentMonthData = sortRowsHighestToLowest(currentMonthData, 0);
+
+  // Append a row to the table for each channel
+  addChannelPerfTableRows(sortedCurrentMonthData);
+
+  // Fill channel cells with figures and labels from each row
 };
 
 const runAllEcommerceReports = function (dataGroupedByChannel) {
@@ -187,6 +199,48 @@ const generateIntroText = function (data) {
 
   const introBody = document.getElementById("intro-body");
   introBody.insertAdjacentHTML("afterbegin", formattedString);
+};
+
+// Tables
+
+const addChannelPerfTableRows = function (data) {
+  const channelPerfTable = document.getElementById("channelPerfTable");
+
+  data.forEach((row) => {
+    const newRowHtml = `
+    <tr class="performance-table__row">
+      <th class="performance-table__cell performance-table__cell--heading">
+          ${row.dimensions[0]}
+      </th>
+      <td class="performance-table__cell">${Number(
+        row.metrics[0].values[0] // sessions
+      )}</td>
+      <td class="performance-table__cell">${Number(
+        row.metrics[0].values[1] // users
+      )}</td>
+      <td class="performance-table__cell">${Number(
+        row.metrics[0].values[2] // bounce rate
+      ).toFixed(2)}%</td>
+      <td class="performance-table__cell">${Number(
+        row.metrics[0].values[3] // avg session duration
+      ).toFixed(2)}</td>
+      <td class="performance-table__cell">${Number(
+        row.metrics[0].values[4] // pages per session
+      ).toFixed(2)}</td>
+      <td class="performance-table__cell">£ ${Number(
+        row.metrics[0].values[5] // revenue
+      ).toFixed(2)}</td>
+      <td class="performance-table__cell">${Number(
+        row.metrics[0].values[6] // transactions
+      )}</td>
+      <td class="performance-table__cell">${Number(
+        row.metrics[0].values[7] // conv rate
+      ).toFixed(2)}%</td>
+    </tr>
+    `;
+
+    channelPerfTable.insertAdjacentHTML("beforeend", newRowHtml);
+  });
 };
 
 // Plotly Graphs
@@ -326,11 +380,40 @@ const groupDataByChannel = function (allData, allChannels) {
   });
 };
 
-const findMonthRow = function (rows, month, metricIndex) {
+const findFigureByMonthRow = function (rows, month, metricIndex) {
   const figure =
     rows.find((row) => row.dimensions[1] === month).metrics[metricIndex]
       .values[0] || 0;
   return figure;
+};
+
+const findAllSpecificMonthRows = function (rows, monthIndex) {
+  let specificMonthRows = [];
+
+  Object.keys(rows).forEach((key) => {
+    rows[key].forEach((row) => {
+      if (row.dimensions[1] === monthIndex) specificMonthRows.push(row);
+    });
+  });
+
+  return specificMonthRows;
+};
+
+const sortRowsHighestToLowest = function (rows, valueIndex) {
+  const reorderedRows = rows.sort((a, b) => {
+    let figureA = Number(a.metrics[0].values[valueIndex]);
+    let figureB = Number(b.metrics[0].values[valueIndex]);
+
+    if (figureA > figureB) {
+      return -1;
+    }
+    if (figureA < figureB) {
+      return 1;
+    }
+    return 0;
+  });
+
+  return reorderedRows;
 };
 
 // Init
