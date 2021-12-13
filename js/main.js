@@ -5,20 +5,24 @@ const viewId = "101406599";
 // Dates
 
 const getDates = function () {
+  // eslint-disable-next-line no-undef
   const today = moment().format("YYYY-MM-DD");
 
   // Last Full Month
+  // eslint-disable-next-line no-undef
   const lastFullMonthStartDate = moment(today)
     .subtract(1, "months")
     .startOf("month")
     .format("YYYY-MM-DD");
 
+  // eslint-disable-next-line no-undef
   const lastFullMonthEndDate = moment(today)
     .subtract(1, "months")
     .endOf("month")
     .format("YYYY-MM-DD");
 
   // 12 Months Previous
+  // eslint-disable-next-line no-undef
   const lastFullMonthStartDateYoY = moment(lastFullMonthStartDate)
     .subtract(12, "months")
     .format("YYYY-MM-DD");
@@ -42,6 +46,7 @@ function runAllQueries(dates) {
 // Query for traffic data
 const queryTrafficReports = function (dates) {
   try {
+    // eslint-disable-next-line no-undef
     gapi.client
       .request({
         path: "/v4/reports:batchGet",
@@ -221,9 +226,11 @@ const addChannelPerfTableRows = function (data) {
       <td class="performance-table__cell">${Number(
         row.metrics[0].values[2] // bounce rate
       ).toFixed(2)}%</td>
-      <td class="performance-table__cell">${Number(
-        row.metrics[0].values[3] // avg session duration
-      ).toFixed(2)}</td>
+      <td class="performance-table__cell">${convertSecondsToTime(
+        Number(
+          row.metrics[0].values[3] // avg session duration (needs conversion)
+        ).toFixed(0)
+      )}</td>
       <td class="performance-table__cell">${Number(
         row.metrics[0].values[4] // pages per session
       ).toFixed(2)}</td>
@@ -275,6 +282,7 @@ const graphOrgTrafficMoM = function (orgData) {
     },
   };
 
+  // eslint-disable-next-line no-undef
   Plotly.newPlot("graphOrgTrafficMoM", data, layout, {
     displayModeBar: false,
     responsive: true,
@@ -283,7 +291,9 @@ const graphOrgTrafficMoM = function (orgData) {
 
 const graphOrgTrafficYoY = function (orgData) {
   const xAxisLabels = [
+    // eslint-disable-next-line no-undef
     moment().subtract(13, "months").endOf("month").format("MMM YYYY"),
+    // eslint-disable-next-line no-undef
     moment().subtract(1, "months").endOf("month").format("MMM YYYY"),
   ];
 
@@ -314,6 +324,7 @@ const graphOrgTrafficYoY = function (orgData) {
     },
   };
 
+  // eslint-disable-next-line no-undef
   Plotly.newPlot("graphOrgTrafficYoY", data, layout, {
     displayModeBar: false,
     responsive: true,
@@ -344,11 +355,16 @@ const determineIncreaseDecrease = function (currentNum, prevNum) {
   return comparison;
 };
 
+const convertSecondsToTime = function (seconds) {
+  return new Date(seconds * 1000).toISOString().substring(11, 19);
+};
+
 // Create array of month names
 const last12MonthsArr = function (months) {
   let arr = [];
 
-  for (i = 0; i < months; i++) {
+  for (let i = 0; i < months; i++) {
+    // eslint-disable-next-line no-undef
     const currentMonth = moment()
       .subtract(i + 1, "month")
       .startOf("month")

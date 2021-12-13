@@ -10,16 +10,20 @@
     "compile:sass": "node-sass sass/main.scss css/style.comp.css",
     "prefix:css": "postcss --use autoprefixer -b 'last 10 versions' css/style.comp.css -o css/style.prefix.css",
     "compress:css": "node-sass css/style.prefix.css css/style.css --output-style compressed",
-    "build:css": "npm-run-all compile:sass prefix:css compress:css"
+    "build:css": "npm-run-all compile:sass prefix:css compress:css",
+    "lint": "eslint ./js --ext .js"
   },
   "author": "Jamie Peutherer",
   "license": "ISC",
   "dependencies": {
-    "autoprefixer": "^10.2.6",
     "js": "^0.1.0",
     "node-sass": "^6.0.1",
+    "plotly.js-dist": "^2.7.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.4.1",
     "npm-run-all": "^4.1.5",
     "parcel": "*",
-    "plotly.js-dist": "^2.7.0"
+    "autoprefixer": "^10.2.6"
   }
 }
