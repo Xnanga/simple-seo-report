@@ -89,3 +89,7 @@ tbody {
 
 h2 {
   font-size: 2rem; }
+
+.hidden {
+  visibility: hidden;
+  display: none; }

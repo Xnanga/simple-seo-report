@@ -131,8 +131,77 @@ const handleTrafficOutput = async function (data) {
   runAllEcommerceReports(dataGroupedByChannel);
 
   // Create graphs
-  graphOrgTrafficMoM(dataGroupedByChannel["Organic Search"]);
-  graphOrgTrafficYoY(dataGroupedByChannel["Organic Search"]);
+  // Org Traffic MoM
+  create12MonthBarGraph(
+    dataGroupedByChannel["Organic Search"],
+    "Month",
+    "Organic Sessions",
+    "graphOrgTrafficMoM",
+    0
+  );
+
+  // Org Traffic YoY
+  create2MonthBarGraph(
+    dataGroupedByChannel["Organic Search"],
+    "Month",
+    "Organic Traffic",
+    "graphOrgTrafficYoY",
+    0
+  );
+
+  // Org Revenue MoM
+  create12MonthBarGraph(
+    dataGroupedByChannel["Organic Search"],
+    "Month",
+    "Organic Revenue",
+    "graphOrgRevenueMoM",
+    5
+  );
+
+  // Org Revenue YoY
+  create2MonthBarGraph(
+    dataGroupedByChannel["Organic Search"],
+    "Month",
+    "Organic Revenue",
+    "graphOrgRevenueYoY",
+    5
+  );
+
+  // Org Transactions MoM
+  create12MonthBarGraph(
+    dataGroupedByChannel["Organic Search"],
+    "Month",
+    "Organic Transactions",
+    "graphOrgTransactionsMoM",
+    6
+  );
+
+  // Org Transactions YoY
+  create2MonthBarGraph(
+    dataGroupedByChannel["Organic Search"],
+    "Month",
+    "Organic Transactions",
+    "graphOrgTransactionsYoY",
+    6
+  );
+
+  // Org Conversion Rate MoM (To become a line graph)
+  create12MonthLineGraph(
+    dataGroupedByChannel["Organic Search"],
+    "Month",
+    "Organic Conversion Rate",
+    "graphOrgConvRateMoM",
+    7
+  );
+
+  // Org Conversion YoY
+  create2MonthBarGraph(
+    dataGroupedByChannel["Organic Search"],
+    "Month",
+    "Organic Conversion Rate",
+    "graphOrgConvRateYoY",
+    7
+  );
 };
 
 const runAllTrafficReports = function (allDataGrouped, orgData) {
@@ -173,8 +242,6 @@ const runChannelPerfOverview = function (dataGroupedByChannel) {
 
   // Append a row to the table for each channel
   addChannelPerfTableRows(sortedCurrentMonthData);
-
-  // Fill channel cells with figures and labels from each row
 };
 
 const runAllEcommerceReports = function (dataGroupedByChannel) {
@@ -203,7 +270,7 @@ const generateIntroText = function (data) {
   const formattedString = `<li>${firstLetter}${remainingString}</li>`;
 
   const introBody = document.getElementById("intro-body");
-  introBody.insertAdjacentHTML("afterbegin", formattedString);
+  // introBody.insertAdjacentHTML("afterbegin", formattedString);
 };
 
 // Tables
@@ -252,12 +319,25 @@ const addChannelPerfTableRows = function (data) {
 
 // Plotly Graphs
 
-const graphOrgTrafficMoM = function (orgData) {
+const create12MonthBarGraph = function (
+  rawData,
+  xAxisTitle = "X Axis Needs Title",
+  yAxisTitle = "Y Axis Needs Title",
+  graphID,
+  valueIndex = 0
+) {
   const xAxisLabels = last12MonthsArr(12);
   let yAxisDataArr = [];
 
-  for (let i = 1; i < orgData.length; i++) {
-    yAxisDataArr.push(orgData[i].metrics[0].values[0]);
+  for (let i = 1; i < rawData.length; i++) {
+    yAxisDataArr.push(rawData[i].metrics[0].values[valueIndex]);
+  }
+
+  if (checkArrForAllZeroes(yAxisDataArr)) {
+    document
+      .getElementById(graphID)
+      .insertAdjacentHTML("afterbegin", `<h3>No Data Available :(</h3>`);
+    return;
   }
 
   const data = [
@@ -270,9 +350,9 @@ const graphOrgTrafficMoM = function (orgData) {
 
   const layout = {
     xaxis: {
-      title: "Month",
+      title: xAxisTitle,
     },
-    yaxis: { title: "Organic Sessions" },
+    yaxis: { title: yAxisTitle },
     dragmode: false,
     margin: {
       b: 60,
@@ -283,13 +363,19 @@ const graphOrgTrafficMoM = function (orgData) {
   };
 
   // eslint-disable-next-line no-undef
-  Plotly.newPlot("graphOrgTrafficMoM", data, layout, {
+  Plotly.newPlot(graphID, data, layout, {
     displayModeBar: false,
     responsive: true,
   });
 };
 
-const graphOrgTrafficYoY = function (orgData) {
+const create2MonthBarGraph = function (
+  rawData,
+  xAxisTitle = "X Axis Needs Title",
+  yAxisTitle = "Y Axis Needs Title",
+  graphID,
+  valueIndex = 0
+) {
   const xAxisLabels = [
     // eslint-disable-next-line no-undef
     moment().subtract(13, "months").endOf("month").format("MMM YYYY"),
@@ -297,24 +383,31 @@ const graphOrgTrafficYoY = function (orgData) {
     moment().subtract(1, "months").endOf("month").format("MMM YYYY"),
   ];
 
-  const currentMonthOrgSessions = [
-    orgData[0].metrics[0].values[0],
-    orgData[12].metrics[0].values[0],
+  const figuresYoY = [
+    findFigureByMonthRow(rawData, "0000", valueIndex),
+    findFigureByMonthRow(rawData, "0012", valueIndex),
   ];
+
+  if (checkArrForAllZeroes(figuresYoY)) {
+    document
+      .getElementById(graphID)
+      .insertAdjacentHTML("afterbegin", `<h3>No Data Available :(</h3>`);
+    return;
+  }
 
   const data = [
     {
       x: xAxisLabels,
-      y: currentMonthOrgSessions,
+      y: figuresYoY,
       type: "bar",
     },
   ];
 
   const layout = {
     xaxis: {
-      title: "Month",
+      title: xAxisTitle,
     },
-    yaxis: { title: "Organic Sessions" },
+    yaxis: { title: yAxisTitle },
     dragmode: false,
     margin: {
       b: 60,
@@ -325,7 +418,58 @@ const graphOrgTrafficYoY = function (orgData) {
   };
 
   // eslint-disable-next-line no-undef
-  Plotly.newPlot("graphOrgTrafficYoY", data, layout, {
+  Plotly.newPlot(graphID, data, layout, {
+    displayModeBar: false,
+    responsive: true,
+  });
+};
+
+// Needs tested
+const create12MonthLineGraph = function (
+  rawData,
+  xAxisTitle = "X Axis Needs Title",
+  yAxisTitle = "Y Axis Needs Title",
+  graphID,
+  valueIndex = 0
+) {
+  const xAxisLabels = last12MonthsArr(12);
+  let yAxisDataArr = [];
+
+  for (let i = 1; i < rawData.length; i++) {
+    yAxisDataArr.push(rawData[i].metrics[0].values[valueIndex]);
+  }
+
+  if (checkArrForAllZeroes(yAxisDataArr)) {
+    document
+      .getElementById(graphID)
+      .insertAdjacentHTML("afterbegin", `<h3>No Data Available :(</h3>`);
+    return;
+  }
+
+  const data = [
+    {
+      x: xAxisLabels,
+      y: yAxisDataArr,
+      type: "scatter",
+    },
+  ];
+
+  const layout = {
+    xaxis: {
+      title: xAxisTitle,
+    },
+    yaxis: { title: yAxisTitle },
+    dragmode: false,
+    margin: {
+      b: 60,
+      l: 60,
+      r: 60,
+      t: 10,
+    },
+  };
+
+  // eslint-disable-next-line no-undef
+  Plotly.newPlot(graphID, data, layout, {
     displayModeBar: false,
     responsive: true,
   });
@@ -340,6 +484,14 @@ const getChannelData = function (allData, channel) {
     });
     res(newChannelData);
   });
+};
+
+const checkArrForAllZeroes = function (arr) {
+  const allZeroes = arr.every(
+    (figure) =>
+      figure === 0 || figure === "0" || figure === 0.0 || figure === "0.0"
+  );
+  return allZeroes;
 };
 
 const getPercentage = (num1, num2) =>
@@ -399,7 +551,7 @@ const groupDataByChannel = function (allData, allChannels) {
 const findFigureByMonthRow = function (rows, month, metricIndex) {
   const figure =
     rows.find((row) => row.dimensions[1] === month).metrics[metricIndex]
-      .values[0] || 0;
+      ?.values[0] || 0;
   return figure;
 };
 
