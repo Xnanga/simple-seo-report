@@ -122,16 +122,12 @@ const handleTrafficOutput = async function (data) {
   runChannelPerfOverview(dataGroupedByChannel);
 
   // Send Data for Organic Traffic Performance
-  runAllTrafficReports(
+  runMainKpiReports(
     dataGroupedByChannel,
     dataGroupedByChannel["Organic Search"]
   );
 
-  // Send Data for e-commerce performance
-  runAllEcommerceReports(dataGroupedByChannel);
-
-  // Create graphs
-  // Org Traffic MoM
+  // Org Traffic MoM Graph
   create12MonthBarGraph(
     dataGroupedByChannel["Organic Search"],
     "Month",
@@ -140,7 +136,7 @@ const handleTrafficOutput = async function (data) {
     0
   );
 
-  // Org Traffic YoY
+  // Org Traffic YoY Graph
   create2MonthBarGraph(
     dataGroupedByChannel["Organic Search"],
     "Month",
@@ -149,7 +145,7 @@ const handleTrafficOutput = async function (data) {
     0
   );
 
-  // Org Revenue MoM
+  // Org Revenue MoM Graph
   create12MonthBarGraph(
     dataGroupedByChannel["Organic Search"],
     "Month",
@@ -158,7 +154,7 @@ const handleTrafficOutput = async function (data) {
     5
   );
 
-  // Org Revenue YoY
+  // Org Revenue YoY Graph
   create2MonthBarGraph(
     dataGroupedByChannel["Organic Search"],
     "Month",
@@ -167,7 +163,7 @@ const handleTrafficOutput = async function (data) {
     5
   );
 
-  // Org Transactions MoM
+  // Org Transactions MoM Graph
   create12MonthBarGraph(
     dataGroupedByChannel["Organic Search"],
     "Month",
@@ -176,7 +172,7 @@ const handleTrafficOutput = async function (data) {
     6
   );
 
-  // Org Transactions YoY
+  // Org Transactions YoY Graph
   create2MonthBarGraph(
     dataGroupedByChannel["Organic Search"],
     "Month",
@@ -194,7 +190,7 @@ const handleTrafficOutput = async function (data) {
     7
   );
 
-  // Org Conversion YoY
+  // Org Conversion YoY Graph
   create2MonthBarGraph(
     dataGroupedByChannel["Organic Search"],
     "Month",
@@ -204,12 +200,27 @@ const handleTrafficOutput = async function (data) {
   );
 };
 
-const runAllTrafficReports = function (allDataGrouped, orgData) {
+const runMainKpiReports = async function (allDataGrouped, orgData) {
   const currMonthOrgSessions = findFigureByMonthRow(orgData, "0012", 0);
   const prevMonthOrgSessions = findFigureByMonthRow(orgData, "0011", 0);
   const prevYearOrgSessions = findFigureByMonthRow(orgData, "0000", 0);
+  const currMonthOrgRevenue = findFigureByMonthRow(orgData, "0012", 5);
+  const prevMonthOrgRevenue = findFigureByMonthRow(orgData, "0011", 5);
+  const prevYearOrgRevenue = findFigureByMonthRow(orgData, "0000", 5);
+  const currMonthOrgTransactions = findFigureByMonthRow(orgData, "0012", 6);
+  const prevMonthOrgTransactions = findFigureByMonthRow(orgData, "0011", 6);
+  const prevYearOrgTransactions = findFigureByMonthRow(orgData, "0000", 6);
+  const currMonthOrgConvRate = findFigureByMonthRow(orgData, "0012", 7);
+  const prevMonthOrgConvRate = findFigureByMonthRow(orgData, "0011", 7);
+  const prevYearOrgConvRate = findFigureByMonthRow(orgData, "0000", 7);
 
-  // Organic Traffic Percentage
+  // Organic Traffic Percentage Share
+  const orgTrafficPercentShare = await calculatePercentageShare(
+    allDataGrouped,
+    "Organic Search",
+    0
+  );
+  createUniqueIntroText(orgTrafficPercentShare);
 
   // MoM Organic Traffic
   compareMonths(
@@ -217,7 +228,8 @@ const runAllTrafficReports = function (allDataGrouped, orgData) {
     prevMonthOrgSessions,
     "month-on-month",
     "organic traffic",
-    "visits"
+    "visits",
+    "org-traffic-mom-line"
   );
 
   // YoY Organic Traffic
@@ -226,7 +238,68 @@ const runAllTrafficReports = function (allDataGrouped, orgData) {
     prevYearOrgSessions,
     "year-on-year",
     "organic traffic",
-    "visits"
+    "visits",
+    "org-traffic-yoy-line"
+  );
+
+  // MoM Organic Revenue
+  compareMonths(
+    currMonthOrgRevenue,
+    prevMonthOrgRevenue,
+    "month-on-month",
+    "organic revenue",
+    "revenue",
+    "ecommerce-mom-line-revenue"
+  );
+
+  // YoY Organic Revenue
+  compareMonths(
+    currMonthOrgRevenue,
+    prevYearOrgRevenue,
+    "year-on-year",
+    "organic revenue",
+    "revenue",
+    "ecommerce-yoy-line-revenue"
+  );
+
+  // MoM Organic Transactions
+  compareMonths(
+    currMonthOrgTransactions,
+    prevMonthOrgTransactions,
+    "month-on-month",
+    "organic transactions",
+    "transactions",
+    "ecommerce-mom-line-transactions"
+  );
+
+  // YoY Organic Transactions
+  compareMonths(
+    currMonthOrgTransactions,
+    prevYearOrgTransactions,
+    "year-on-year",
+    "organic transactions",
+    "transactions",
+    "ecommerce-yoy-line-transactions"
+  );
+
+  // MoM Organic Conversion Rate
+  compareMonths(
+    currMonthOrgConvRate,
+    prevMonthOrgConvRate,
+    "month-on-month",
+    "organic conversion rate",
+    "conversion rate",
+    "ecommerce-mom-line-conv-rate"
+  );
+
+  // YoY Organic Conversion Rate
+  compareMonths(
+    currMonthOrgConvRate,
+    prevYearOrgConvRate,
+    "year-on-year",
+    "organic conversion rate",
+    "conversion rate",
+    "ecommerce-yoy-line-conv-rate"
   );
 };
 
@@ -244,33 +317,88 @@ const runChannelPerfOverview = function (dataGroupedByChannel) {
   addChannelPerfTableRows(sortedCurrentMonthData);
 };
 
-const runAllEcommerceReports = function (dataGroupedByChannel) {
-  // Some Code
-};
-
 // Google Analytics - Comparisons
 
-const compareMonths = function (currVal, prevVal, comparison, metric, unit) {
-  const introString = `${comparison} ${metric} ${determineIncreaseDecrease(
-    currVal,
-    prevVal
-  )} by ${getPercentage(
-    currVal,
-    prevVal
-  )}%, from ${prevVal} to ${currVal} ${unit}.`;
+const compareMonths = function (
+  currVal,
+  prevVal,
+  comparison,
+  metric,
+  unit,
+  lineId
+) {
+  let introString;
+  let includeUnit = false;
+  const changePercentage = determineIncreaseDecrease(currVal, prevVal);
 
-  generateIntroText(introString);
+  // Only include unit at end of sentence depending on line used in intro
+  if (metric === "organic traffic") !includeUnit;
+
+  if (changePercentage === "remained stable") {
+    introString = `${comparison} ${metric} ${determineIncreaseDecrease(
+      currVal,
+      prevVal
+    )} at ${currVal} ${includeUnit === true ? unit : ""}.`;
+  } else {
+    introString = `${comparison} ${metric} ${determineIncreaseDecrease(
+      currVal,
+      prevVal
+    )} by ${getPercentage(
+      currVal,
+      prevVal
+    )}%, from ${prevVal} to ${currVal} ${unit}.`;
+  }
+
+  generateIntroText(introString, lineId);
+};
+
+const calculatePercentageShare = async function (
+  allData,
+  channel = "Organic Search",
+  valueIndex = 0
+) {
+  const currentMonthData = findAllSpecificMonthRows(allData, "0012");
+
+  let shareFigure;
+  await getChannelData(currentMonthData, channel).then((res) => {
+    shareFigure = res[0].metrics[0].values[valueIndex];
+  });
+
+  let totalFigure = 0;
+  currentMonthData.forEach(
+    (row) => (totalFigure += Number(row.metrics[0].values[valueIndex]))
+  );
+
+  return `${((shareFigure / totalFigure) * 100).toFixed(2)}%`;
 };
 
 // UI
 
-const generateIntroText = function (data) {
+// THIS NEEDS REWORKED TO CATER TO ANY DATA PROVIDED TO IT
+const createUniqueIntroText = function (figure1, figure2) {
+  // Define specific intro text lines
+  const orgTrafficShareLineId = "org-traffic-percentage-line";
+
+  // Define text for each line
+  const orgTrafficShareLine = `Organic Search accounted for ${figure1} of all traffic this month.`;
+
+  generateIntroText(orgTrafficShareLine, orgTrafficShareLineId);
+};
+
+const generateIntroText = function (data, lineId) {
   const firstLetter = data.slice(0, 1).toUpperCase();
   const remainingString = data.slice(1);
-  const formattedString = `<li>${firstLetter}${remainingString}</li>`;
+  const formattedString = `${firstLetter}${remainingString}`;
 
-  const introBody = document.getElementById("intro-body");
-  // introBody.insertAdjacentHTML("afterbegin", formattedString);
+  populateIntroText(formattedString, lineId);
+};
+
+const populateIntroText = function (sentence, lineId) {
+  // Get all line IDs
+  const lineElement = getLineById(lineId);
+
+  // Replace inner text depending on lineID
+  lineElement.innerText = sentence;
 };
 
 // Tables
@@ -424,7 +552,6 @@ const create2MonthBarGraph = function (
   });
 };
 
-// Needs tested
 const create12MonthLineGraph = function (
   rawData,
   xAxisTitle = "X Axis Needs Title",
@@ -494,8 +621,10 @@ const checkArrForAllZeroes = function (arr) {
   return allZeroes;
 };
 
-const getPercentage = (num1, num2) =>
-  Math.abs(((num1 - num2) / num1) * 100).toFixed(2);
+const getPercentage = (num1, num2) => {
+  if (!num1 || !num2) return 0;
+  return Math.abs(((num1 - num2) / num1) * 100).toFixed(2);
+};
 
 const determineIncreaseDecrease = function (currentNum, prevNum) {
   if (currentNum === prevNum) return "remained stable";
@@ -510,6 +639,8 @@ const determineIncreaseDecrease = function (currentNum, prevNum) {
 const convertSecondsToTime = function (seconds) {
   return new Date(seconds * 1000).toISOString().substring(11, 19);
 };
+
+const getLineById = (lineId) => document.getElementById(lineId);
 
 // Create array of month names
 const last12MonthsArr = function (months) {
