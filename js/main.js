@@ -38,9 +38,8 @@ const getDates = function () {
 
 function runAllQueries(dates) {
   queryTrafficReports(dates);
-  // queryLandingPageReports();
+  queryLandingPageReports(dates);
   // queryEventsReports();
-  // queryEcommerceReports(); No e-commerce data to test with yet
 }
 
 // Query for traffic data
@@ -103,7 +102,53 @@ const queryTrafficReports = function (dates) {
       })
       .then(handleTrafficOutput);
   } catch (error) {
-    console.error(error);
+    console.error("There was an error with the API call.");
+  }
+};
+
+// Query for landing pages
+const queryLandingPageReports = function (dates) {
+  try {
+    // eslint-disable-next-line no-undef
+    gapi.client
+      .request({
+        path: "/v4/reports:batchGet",
+        root: "https://analyticsreporting.googleapis.com/",
+        method: "POST",
+        includeEmptyRows: true,
+        body: {
+          reportRequests: [
+            {
+              viewId: viewId,
+              dateRanges: [
+                {
+                  startDate: dates.lastFullMonthStartDateYoY,
+                  endDate: dates.lastFullMonthEndDate,
+                },
+              ],
+              metrics: [
+                {
+                  expression: "ga:sessions",
+                },
+              ],
+              dimensions: [
+                {
+                  name: "ga:channelGrouping",
+                },
+                {
+                  name: "ga:nthMonth",
+                },
+                {
+                  name: "ga:landingPagePath",
+                },
+              ],
+            },
+          ],
+        },
+      })
+      .then(handleLandingPageEventsGoalsReport);
+  } catch (error) {
+    console.error("There was an error with the API call.");
   }
 };
 
@@ -140,7 +185,7 @@ const handleTrafficOutput = async function (data) {
   create2MonthBarGraph(
     dataGroupedByChannel["Organic Search"],
     "Month",
-    "Organic Traffic",
+    "Organic Sessions",
     "graphOrgTrafficYoY",
     0
   );
@@ -198,6 +243,55 @@ const handleTrafficOutput = async function (data) {
     "graphOrgConvRateYoY",
     7
   );
+};
+
+const handleLandingPageEventsGoalsReport = async function (data) {
+  // Destructure for all relevant rows
+  const {
+    result: {
+      reports: {
+        0: {
+          data: { rows: allDataPacked },
+        },
+      },
+    },
+  } = data;
+
+  // Prepare data for filtering
+  const allChannels = getAllChannels(allDataPacked);
+  const dataGroupedByChannel = await groupDataByChannel(
+    allDataPacked,
+    allChannels
+  );
+
+  // Filter down to relevant months and organic data
+  const allDataCurrentMonth = await getChannelData(
+    findAllSpecificMonthRows(dataGroupedByChannel, "0012"),
+    "Organic Search"
+  );
+  const allDataPreviousMonth = await getChannelData(
+    findAllSpecificMonthRows(dataGroupedByChannel, "0011"),
+    "Organic Search"
+  );
+  const allDataPreviousYoY = await getChannelData(
+    findAllSpecificMonthRows(dataGroupedByChannel, "0000"),
+    "Organic Search"
+  );
+
+  // Match up landing pages and compare sessions
+  const landingPageDataMoM = matchPerformanceBetweenTwoDatasets(
+    allDataCurrentMonth,
+    allDataPreviousMonth
+  );
+
+  const landingPageDataYoY = matchPerformanceBetweenTwoDatasets(
+    allDataCurrentMonth,
+    allDataPreviousYoY
+  );
+
+  // Send data to create table
+  createComparisonTable(landingPageDataMoM, "landingPageMoMTable");
+  createComparisonTable(landingPageDataYoY, "landingPageYoYTable");
 };
 
 const runMainKpiReports = async function (allDataGrouped, orgData) {
@@ -352,6 +446,40 @@ const compareMonths = function (
   generateIntroText(introString, lineId);
 };
 
+const matchPerformanceBetweenTwoDatasets = function (
+  currentMonthData,
+  comparisonMonthData
+) {
+  let dataTable = {};
+
+  // Match months between datasets
+  currentMonthData.forEach((row) => {
+    const currentRowPagePath = row.dimensions[2];
+    const previousMonthPagePath = comparisonMonthData.find(
+      (row) => row.dimensions[2] === currentRowPagePath
+    );
+
+    // If match found between datasets, perform comparison
+    if (previousMonthPagePath) {
+      const currentMonthSessions = Number(row.metrics[0].values[0]);
+      const comparisonMonthSessions = Number(
+        comparisonMonthData.find(
+          (row) => row.dimensions[2] === currentRowPagePath
+        ).metrics[0].values[0]
+      );
+
+      // Add all data to table
+      dataTable[currentRowPagePath] = {
+        identifier: currentRowPagePath,
+        previousFigure: comparisonMonthSessions,
+        currentFigure: currentMonthSessions,
+        difference: currentMonthSessions - comparisonMonthSessions,
+      };
+    }
+  });
+  return dataTable;
+};
+
 const calculatePercentageShare = async function (
   allData,
   channel = "Organic Search",
@@ -373,7 +501,6 @@ const calculatePercentageShare = async function (
 };
 
 // UI
-
 // THIS NEEDS REWORKED TO CATER TO ANY DATA PROVIDED TO IT
 const createUniqueIntroText = function (figure1, figure2) {
   // Define specific intro text lines
@@ -443,6 +570,25 @@ const addChannelPerfTableRows = function (data) {
 
     channelPerfTable.insertAdjacentHTML("beforeend", newRowHtml);
   });
+};
+
+const createComparisonTable = function (data, tableId) {
+  console.log(data);
+  const dataObj = data;
+  const perfTable = document.getElementById(tableId);
+
+  // Get top 10 highest difference (positive) - MAYBE THIS SHOULD BE ITS OWN DEDICATED FUNCTION?
+  // let topTenHighest = {};
+  // for(let i = 1; i < 10; i++){
+  //   dataObj
+  // }
+
+  // Splice these out of the array and into a new one
+
+  // Add relevant data to html table
+
+  // Insert into page table html
+  // perfTable.insertAdjacentHTML("beforeend", newRowHtml);
 };
 
 // Plotly Graphs
