@@ -1,6 +1,6 @@
 // Global
 
-const viewId = "101406599";
+const viewId = "224626040";
 
 // Dates
 
@@ -827,8 +827,9 @@ const groupDataByChannel = function (allData, allChannels) {
 
 const findFigureByMonthRow = function (rows, month, metricIndex) {
   const figure =
-    rows.find((row) => row.dimensions[1] === month).metrics[metricIndex]
-      ?.values[0] || 0;
+    rows.find((row) => row.dimensions[1] === month).metrics[0]?.values[
+      metricIndex
+    ] || 0;
   return figure;
 };
 
