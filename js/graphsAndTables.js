@@ -1,5 +1,8 @@
 // Imports
 
+import moment from "../node_modules/moment/moment.js";
+import Plotly from "../node_modules/plotly.js-dist/plotly.js";
+
 import {
   convertSecondsToTime,
   last12MonthsArr,

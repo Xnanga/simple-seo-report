@@ -1,3 +1,9 @@
+// Imports
+
+import moment from "../node_modules/moment/moment.js";
+
+// Functions
+
 export const compareMonths = function (
   currVal,
   prevVal,

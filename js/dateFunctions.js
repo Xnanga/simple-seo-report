@@ -1,3 +1,9 @@
+// Imports
+
+import moment from "../node_modules/moment/moment.js";
+
+// Functions
+
 export const getDates = function () {
   // eslint-disable-next-line no-undef
   const today = moment().format("YYYY-MM-DD");
