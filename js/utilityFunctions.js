@@ -2,36 +2,62 @@
 
 import moment from "../node_modules/moment/moment.js";
 
+// Global Vars
+
+let chosenCurrency = "£";
+
 // Functions
 
 export const compareMonths = function (
-  currVal,
-  prevVal,
+  currValue,
+  prevValue,
   comparison,
   metric,
   unit,
   lineId
 ) {
+  // Convert values to numbers and to 2 decimal places
+  let currVal = Number(currValue).toFixed(2);
+  let prevVal = Number(prevValue).toFixed(2);
+
   let introString;
   let includeUnit = false;
+  let includeCurrency = false;
+  let includePercentage = false;
   const changePercentage = determineIncreaseDecrease(currVal, prevVal);
 
-  // Only include unit at end of sentence depending on line used in intro
-  if (metric === "organic traffic") !includeUnit;
+  // Only include unit or currency depending on metric
+  // Remove last 3 characters if traffic or transactions
+  if (metric === "organic traffic") {
+    includeUnit = true;
+    currVal = removeLastThreeCharacters(currVal);
+    prevVal = removeLastThreeCharacters(prevVal);
+  }
+  if (metric === "organic transactions") {
+    currVal = removeLastThreeCharacters(currVal);
+    prevVal = removeLastThreeCharacters(prevVal);
+  }
+  if (metric === "organic conversion rate") includePercentage = true;
+  if (metric === "organic revenue") includeCurrency = true;
 
   if (changePercentage === "remained stable") {
     introString = `${comparison} ${metric} ${determineIncreaseDecrease(
       currVal,
       prevVal
-    )} at ${currVal} ${includeUnit === true ? unit : ""}.`;
+    )} at ${includeCurrency === true ? chosenCurrency : ""}${addCommasToNumber(
+      currVal
+    )} ${includeUnit === true ? unit : ""}`;
   } else {
     introString = `${comparison} ${metric} ${determineIncreaseDecrease(
       currVal,
       prevVal
-    )} by ${getPercentage(
-      currVal,
-      prevVal
-    )}%, from ${prevVal} to ${currVal} ${unit}.`;
+    )} by ${getPercentage(currVal, prevVal)}%, from ${
+      includeCurrency === true ? chosenCurrency : ""
+    }${addCommasToNumber(prevVal)}${includePercentage === true ? "%" : ""} to ${
+      includeCurrency === true ? chosenCurrency : ""
+    }${addCommasToNumber(currVal)}${includePercentage === true ? "%" : ""}${
+      includeUnit === true ? " " + unit : ""
+    }.`;
   }
 
   generateIntroText(introString, lineId);
@@ -141,18 +167,30 @@ export const getPercentage = (num1, num2) => {
   return Math.abs(((num1 - num2) / num1) * 100).toFixed(2);
 };
 
-export const determineIncreaseDecrease = function (currentNum, prevNum) {
+export const determineIncreaseDecrease = function (currentNumber, prevNumber) {
+  const currentNum = Number(currentNumber);
+  const prevNum = Number(prevNumber);
+
   if (currentNum === prevNum) return "remained stable";
 
   let comparison;
   currentNum > prevNum
     ? (comparison = "increased")
     : (comparison = "decreased");
+
   return comparison;
 };
 
 export const convertSecondsToTime = function (seconds) {
   return new Date(seconds * 1000).toISOString().substring(11, 19);
+};
+
+export const addCommasToNumber = function (num) {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};
+
+export const removeLastThreeCharacters = function (num) {
+  return num.slice(0, -3);
 };
 
 export const getLineById = (lineId) => document.getElementById(lineId);
