@@ -2,28 +2,24 @@
   "name": "simple-seo-report",
   "version": "1.0.0",
   "description": "A simple reporting tool for Google Analytics data for SEOs.",
-  "main": "index.html",
+  "source": "src/index.html",
   "scripts": {
-    "watch:sass": "node-sass sass/main.scss css/style.css -w",
-    "devserver": "live-server",
-    "start": "npm-run-all --parallel devserver watch:sass",
-    "compile:sass": "node-sass sass/main.scss css/style.comp.css",
-    "prefix:css": "postcss --use autoprefixer -b 'last 10 versions' css/style.comp.css -o css/style.prefix.css",
-    "compress:css": "node-sass css/style.prefix.css css/style.css --output-style compressed",
-    "build:css": "npm-run-all compile:sass prefix:css compress:css",
+    "start": "parcel",
+    "build": "parcel build",
     "lint": "eslint ./js --ext .js"
   },
   "author": "Jamie Peutherer",
   "license": "ISC",
   "dependencies": {
     "js": "^0.1.0",
+    "moment": "^2.29.1",
     "node-sass": "^6.0.1",
     "plotly.js-dist": "^2.7.0"
   },
   "devDependencies": {
+    "autoprefixer": "^10.2.6",
     "eslint": "^8.4.1",
     "npm-run-all": "^4.1.5",
-    "parcel": "*",
-    "autoprefixer": "^10.2.6"
+    "parcel": "^2.0.1"
   }
 }
